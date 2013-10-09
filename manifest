@@ -1,0 +1,2 @@
+Main-Class: NCDSearch.DistributedNCDSearch
+Class-Path: commons-io-*.jar hadoop-core-*.jar

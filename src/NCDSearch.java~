@@ -1,0 +1,114 @@
+/* Brought to you by: Scott! gitpushoriginmaster@gmail.com*/
+
+
+package NCDSearch;
+
+import java.io.*;
+import java.util.*;
+import java.util.zip.Deflater;
+import org.apache.commons.io.FileUtils;
+
+public class NCDSearch {
+
+	//Constants
+	private static final int COMPRESSION = 2;
+
+	private String bestpath = "Directory Empty!";
+	private double bestscore = Integer.MAX_VALUE;
+	private static Random rand = new Random(System.currentTimeMillis());
+	private byte[] targetbytes;
+
+	public NCDSearch(String targetpath, String path) {
+		
+		try {
+			this.targetbytes = org.apache.commons.io.FileUtils.readFileToByteArray(new File(targetpath));
+		} catch(IOException e) {
+			System.out.println(e.toString());
+			System.out.println("Could not find target!" + targetpath); 
+		}
+
+		search(path, COMPRESSION);
+	}
+
+	// Recursively searches through the directory given by path, using the NCD to look for similar files.
+	private void search(String path, int compression) {
+	
+		byte[] filebytes;
+	
+		File directory = new File(path);
+
+		File[] files = directory.listFiles();
+		double score;
+
+		for (File file : files) {
+			if (file.isDirectory()) {
+				search(file.getPath(), compression);
+			} else {
+				try {
+										
+					FileInputStream reader = new FileInputStream(file);
+					while (reader.available() > 0) {
+						
+						filebytes = new byte[Math.min(reader.available(),10*targetbytes.length)];
+						reader.read(filebytes);
+						score = NCD(filebytes, targetbytes, compression);
+
+						if (score < bestscore) {
+							this.bestscore = score;
+							this.bestpath = file.getPath();
+						}
+					}
+
+				} catch(IOException e) {
+					System.out.println(e.toString());
+					System.out.println("Could not read file!" + file.getPath());
+				}
+			}
+		}
+	}
+	
+	//Computes a modified one directional normalized compression distance.  Computes a small distance if the target is a subfile of file. 
+	public double NCD(byte[] file, byte[] target, int compression) {
+
+		Deflater compressor = new Deflater(compression);
+
+		byte[] outputtrash = new byte[file.length + target.length];
+
+		int bothcompressedsize;
+		int filecompressedsize;
+		int targetcompressedsize;
+
+		byte[] both = new byte[file.length + target.length];
+		for (int i = 0; i < file.length; i++) {
+			both[i] = file[i];
+		}
+		for (int i = 0; i < target.length; i++) {
+			both[i + file.length] = target[i];
+		}
+
+		compressor.setInput(file); compressor.finish(); filecompressedsize = compressor.deflate(outputtrash); compressor.reset();
+		compressor.setInput(target); compressor.finish(); targetcompressedsize = compressor.deflate(outputtrash); compressor.reset();
+		compressor.setInput(both) ; compressor.finish(); bothcompressedsize  = compressor.deflate(outputtrash); compressor.reset();
+
+		return (double)(bothcompressedsize - filecompressedsize)/(double)targetcompressedsize;
+	}
+
+	public String getMatch() {
+		return bestpath;
+	}
+
+	public double getScore() {
+		return bestscore;
+	}
+
+	public static void main(String[] args) {
+		NCDSearch find = new NCDSearch(args[0], args[1]);
+		System.out.println(find.getMatch());
+		System.out.println(find.getScore());
+	}	
+
+}	
+			
+			
+			
+				

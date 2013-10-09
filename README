@@ -1,0 +1,21 @@
+/* 
+   I hereby release this work into the public domain, to the extent allowed by law, per the CC0 1.0 license 
+   With Love,
+   -Scott!
+   gitpushoriginmaster@gmail.com
+
+
+You'll need to give this thing access to hadoop-core-<version>.jar and commons-io-<version>.jar somehow
+
+usage: hadoop jar ncdsearch.jar <searchedforfile> <searchedindirectory> <output>
+
+This is a tool to search for a file in a distributed file directory by its approximate contents.  
+
+You provide some bytes and a directory to search, and it tells you
+which files have hunks of your bytes in them according to a score called the normalized compression distance.  The score is from 0ish to 1ish,
+where a score close to 0 indicates that a file contains the searched for bytes almost identically, and a score close to 1 indicates that a
+file does not contain anything even remotely like your bytes.  Works best for files sized at least 10 kilobytes or so.
+
+For example, suppose you have malware piggybacking on another file somewhere on your system.  You think, by your symptoms, that you know which malware it is, but it seems to be a newer and more kickass version of that malware.  No worries, because the newer version will be *approximately* like the older version (which you conveniently download while searching for FrEe Moviez), and this puppy can use this to root out the infected file.
+*/
+
